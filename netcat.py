@@ -2,6 +2,7 @@ import argparse
 import socket
 import shlex
 import subprocess
+'''subprocess предоставя мощен интерфейс за създаване процеси, чрез които можете да взаимодействате с клиентските програми по няколко начина'''
 import sys
 import textwrap
 import threading
@@ -12,7 +13,8 @@ def execute(cmd):
     if not cmd:
         return
     output = subprocess.check_output(shlex.split(cmd), stderr=subprocess.STDOUT)
-
+    '''В този случай използваме метода на (subprocess) check_output, който изпълнява команда на локалната операционна 
+    система и след това връща изхода на тази команда'''
     return output.decode()
 
 
@@ -65,6 +67,8 @@ class NetCat:
             )
             client_thread.start()
 
+
+    '''логиката за изтегляне на файлове, изпълнение на команди и създаване на интерактивна командна обвивка. '''
     def handle(self, client_socket):
         if self.args.execute:
             output = execute(self.args.execute)
@@ -100,25 +104,29 @@ class NetCat:
 
 
 if __name__ == '__main__':
+    ''' За да създадем интерфейс на командния ред чрез модула argparse,
+    Ще предоставим аргументи, за да може да бъде е извикан за качване на файлове на сървъра,
+    изпълнение на команди или стартиране на командна обвивка'''
+
     parser = argparse.ArgumentParser(
         description='BHP NET Tool',
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=textwrap.dedent('''Example: 
-            netcat.py -t 192.168.1.108 -p 5555 -l -c 
+            netcat.py -t 192.168.1.108 -p 5555 -l -c
             netcat.py -t 192.168.1.108 -p 5555 -l -u=mytest.txt
             netcat.py -t 192.168.1.108 -p 5555 -l -e=\"cat /etc/passwd\"
             echo 'ABC' | ./netcat.py -t 192.168.1.108 -p 135
             netcat.py -t 192.168.1.108 -p 5555 
-        ''')
+        '''),
     )
     parser.add_argument('-c', '--command', action='store_true', help='command shell')
     parser.add_argument('-e', '--execute', help='execute specified command')
     parser.add_argument('-l', '--listen', action='store_true', help='listen')
     parser.add_argument('-p', '--port', type=int, default=5555, help='specified port')
-    parser.add_argument('-t', '--target', default='192.168.1.203', help='specified IP')
+    parser.add_argument('-t', '--target', default='192.168.100.90', help='specified IP')
     parser.add_argument('-u', '--upload', help='upload file')
     args = parser.parse_args()
-    if args.listen:
+    if args.listen:# Ако програмата се използва като слушател, ние извикваме NetCat обекта с празен низов буфер.
         buffer = ''
     else:
         buffer = sys.stdin.read()
